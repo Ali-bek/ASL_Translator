@@ -68,6 +68,7 @@ def text_mode(cam):
 	word = ""
 	count_same_frame = 0
 	num_frames = 0
+	percentage = 0
 	while True:
 		img = cam.read()[1]
 		img = cv2.resize(img, (640, 480))
@@ -78,7 +79,7 @@ def text_mode(cam):
 		gray_frame = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
 		gray_frame = cv2.GaussianBlur(gray_frame, (9, 9), 0)
 
-		if num_frames < 70:
+		if num_frames < 100:
 			cal_accum_avg(gray_frame, accumulated_weight)
 			cv2.putText(img, "FETCHING BACKGROUND...PLEASE WAIT", (80, 400), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,0,255), 2)
 		else:
@@ -96,7 +97,8 @@ def text_mode(cam):
 				pred_probab = model.predict(thresh)[0]
 				pred_class = list(pred_probab).index(max(pred_probab))
 				pred_probab = max(pred_probab)
-
+				percentage = round(pred_probab*100, 1)
+				
 				if pred_probab*100 > 70:
 					text = get_pred_text_from_db(pred_class)
                 
@@ -110,7 +112,8 @@ def text_mode(cam):
 						word = word + " "
 						count_same_frame = 0
 					elif text == "del":
-						word = word + "<="
+						n = len(word) - 1
+						word = word[:n]
 						count_same_frame = 0
 					else:
 						word = word + text
@@ -119,13 +122,14 @@ def text_mode(cam):
 			else:
 				text = ""
 				word = ""
+				percentage = 0
 
 		num_frames += 1
         
-		blackboard = np.zeros((480, 640, 3), dtype=np.uint8)
-		cv2.putText(blackboard, " ", (180, 50), cv2.FONT_HERSHEY_TRIPLEX, 1.5, (255, 0,0))
-		cv2.putText(blackboard, "Predicted text = " + text, (30, 100), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 0))
-		cv2.putText(blackboard, word, (30, 240), cv2.FONT_HERSHEY_TRIPLEX, 2, (255, 255, 255))
+		blackboard = np.full((480, 1080, 3), 255, dtype=np.uint8)
+		cv2.putText(blackboard, " ", (180, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 0,0))
+		cv2.putText(blackboard, "Predicted text = " + text + " - Percentage = "+str(percentage)+" %", (30, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
+		cv2.putText(blackboard, word, (30, 240), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0))
 		cv2.rectangle(img, (ROI_left, ROI_top), (ROI_right, ROI_bottom), (255,128,0), 3)
 
 		res = np.hstack((img, blackboard))
