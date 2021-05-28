@@ -155,7 +155,7 @@ def text_mode_loop():
 			
 		else:
 			text = ""
-			word = ""
+			#word = ""
 			percentage = 0
 			#text_area.delete("1.0", END)
 
@@ -170,13 +170,14 @@ def text_mode_loop():
 	imgtk = ImageTk.PhotoImage(Image.fromarray(cv2image))
 	camera.imgtk = imgtk
 	camera.configure(image=imgtk)
-	camera.after(10, text_mode_loop)
+	if cam is not None:
+		camera.after(10, text_mode_loop)
 
 def text_mode():
 	global cam
 	if cam is None:
 		cam = cv2.VideoCapture(0)
-		recalcul_backgrd_btn.place(relx=0.25, rely=0.75)
+		recalcul_backgrd_btn.place(relx=0.22, rely=0.73)
 		text_mode_loop()
 	else:
 		messagebox.showerror("ERROR","The Camera is already activated !! ")
@@ -189,6 +190,7 @@ def stop_rec():
 		num_frames = 0
 		cam.release()
 		cam = None
+		recalcul_backgrd_btn.place_forget()
 	else:
 		messagebox.showerror("ERROR","The Camera is not activated !! ")
 
@@ -209,8 +211,8 @@ def clear_text():
 	text_area.delete("1.0", END)
 
 def calculing_back():
-	print("coucouc")
-
+	global num_frames
+	num_frames = 0
 
 """def checking_flag():
 	global flag
@@ -250,7 +252,7 @@ text_area = Text(root, bg="white", height=7, width=35, font=("Helvetica", 20, "b
 start_btn = Button(root, text="Start the video", font="Helvetica 10 bold", height=2, width=15, bg="#33B3FF", command=lambda: text_mode())
 stop_btn = Button(root, text="Stop the video", font="Helvetica 10 bold", height=2, width=15, bg="#FF4933", command=lambda: stop_rec())
 clear_text_btn = Button(root, text="Clear the text", font="Helvetica 10 bold", height=2, width=15, bg="#FF8033", command=lambda: clear_text())
-recalcul_backgrd_btn = Button(root, text="Recalculate the background", font="Helvetica 10 bold", height=2, width=15, bg="#FF8033", command=lambda: calculing_back())
+recalcul_backgrd_btn = Button(root, text="Recalculate the background", font="Helvetica 10 bold", height=2, width=25, bg="#FF8033", command=lambda: calculing_back())
 radio_btn1 = Radiobutton(root, text = " Letters ", font='bold', variable = var, value = 0, command=sel)
 radio_btn2 = Radiobutton(root, text = " Numbers ", font='bold', variable = var, value = 1, command=sel)
 radioLab = Label(root, text="choose an option :", font='bold', bg="#33B3FF")
