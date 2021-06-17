@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-model = load_model('model_cnn_v5_seg.h5')
+#model = load_model('model_cnn_v5_seg.h5')
+model = load_model('model_cnn_v5_rev_seg.h5')
 model_nb = load_model('model_cnn_number.h5')
 
 background = None
@@ -61,7 +62,7 @@ def segment_hand(frame, threshold=10):
         return (thresholded, hand_segment_max_cont)
 
 
-def get_pred_text_from_db(pred_class):
+def get_predected_text(pred_class):
 	if pred_class <= 25 :
 		return chr(pred_class + 65)
 	elif pred_class == 26 :
@@ -69,7 +70,7 @@ def get_pred_text_from_db(pred_class):
 	else:
 		return "del"
 
-def text_mode_loop():
+def recognize_sign_loop():
 	global cam
 	img = cam.read()[1]
 	img = cv2.flip(img, 1)
@@ -88,7 +89,7 @@ def text_mode_loop():
 
 	if num_frames < 100:
 		cal_accum_avg(gray_frame, accumulated_weight)
-		cv2.putText(img, "FETCHING BACKGROUND...PLEASE WAIT", (80, 400), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,0,255), 2)
+		cv2.putText(img, "DETECTING BACKGROUND...PLEASE WAIT", (80, 400), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,0,255), 2)
 	else:
 		hand = segment_hand(gray_frame)
 
@@ -110,7 +111,7 @@ def text_mode_loop():
 				percentage = round(pred_probab*100)
 					
 				if pred_probab*100 > 70:
-					text = get_pred_text_from_db(pred_class)
+					text = get_predected_text(pred_class)
 				
 				if old_text == text:
 					count_same_frame += 1
@@ -171,14 +172,14 @@ def text_mode_loop():
 	camera.imgtk = imgtk
 	camera.configure(image=imgtk)
 	if cam is not None:
-		camera.after(10, text_mode_loop)
+		camera.after(10, recognize_sign_loop)
 
-def text_mode():
+def recognize_sign():
 	global cam
 	if cam is None:
 		cam = cv2.VideoCapture(0)
 		recalcul_backgrd_btn.place(relx=0.22, rely=0.73)
-		text_mode_loop()
+		recognize_sign_loop()
 	else:
 		messagebox.showerror("ERROR","The Camera is already activated !! ")
 
@@ -209,14 +210,13 @@ def sel():
 
 def clear_text():
 	text_area.delete("1.0", END)
+	global word
+	word = ""
 
 def calculing_back():
 	global num_frames
 	num_frames = 0
 
-"""def checking_flag():
-	global flag
-	return flag  """
 
 from tkinter import *
 from tkinter import messagebox
@@ -227,18 +227,7 @@ root.title('ASL Translator')
 width= root.winfo_screenwidth() 
 height= root.winfo_screenheight()
 root.geometry("%dx%d" % (width, height))
-"""
-imgh = cv2.imread('nothing1.jpg', 1)
-imgh = cv2.resize(imgh, (640, 480))
-b, g, r = cv2.split(imgh)
-img_merge = cv2.merge((r,g,b))
-img = ImageTk.PhotoImage(Image.fromarray(img_merge))
 
-back = cv2.imread('asl_test/A1.jpg', 1)
-b, g, r = cv2.split(back)
-img_merge = cv2.merge((r,g,b))
-thresh1 = ImageTk.PhotoImage(Image.fromarray(img_merge))
-"""
 camera = Label(root)
 thresh1 = Label(root)
 var = IntVar()
@@ -249,7 +238,7 @@ text_pred_lab = Label(root, text="Predected Text :", font='bold', bg="#33B3FF")
 text_pred = Label(root, text=" ", font=("Helvetica", 40), height=2, width=5, bg="white")
 text_lab = Label(root, text="Text :", font='bold', bg="#33B3FF")
 text_area = Text(root, bg="white", height=7, width=35, font=("Helvetica", 20, "bold"))
-start_btn = Button(root, text="Start the video", font="Helvetica 10 bold", height=2, width=15, bg="#33B3FF", command=lambda: text_mode())
+start_btn = Button(root, text="Start the video", font="Helvetica 10 bold", height=2, width=15, bg="#33B3FF", command=lambda: recognize_sign())
 stop_btn = Button(root, text="Stop the video", font="Helvetica 10 bold", height=2, width=15, bg="#FF4933", command=lambda: stop_rec())
 clear_text_btn = Button(root, text="Clear the text", font="Helvetica 10 bold", height=2, width=15, bg="#FF8033", command=lambda: clear_text())
 recalcul_backgrd_btn = Button(root, text="Recalculate the background", font="Helvetica 10 bold", height=2, width=25, bg="#FF8033", command=lambda: calculing_back())
@@ -268,8 +257,8 @@ text_area.place(relx=0.55, rely=0.5)
 thresh1.place(relx=0.01, rely=0.65)
 start_btn.place(relx=0.2, rely=0.65)
 stop_btn.place(relx=0.3, rely=0.65)
-radio_btn1.place(relx=0.65, rely=0.45)
-radio_btn2.place(relx=0.72, rely=0.45)
+radio_btn1.place(relx=0.68, rely=0.45)
+radio_btn2.place(relx=0.75, rely=0.45)
 radioLab.place(relx=0.55, rely=0.45)
 clear_text_btn.place(relx=0.75, rely=0.8)
 
